@@ -1,0 +1,147 @@
+:root {
+    --light-color-background: #F4F6FB;
+    --light-color-surface: #FFFFFF;
+    --light-color-border: #bec5d1;
+    --light-color-title: #3e424b;
+    --light-color-text: #6B7280;
+    --light-color-scroll-track: #CBD5E1;
+    --light-color-scroll-thumb: #a1adbe;
+    --light-color-scroll-active: #64748B;
+    
+    --dark-color-background: #0B0E14;
+    --dark-color-surface: #161A23;
+    --dark-color-border: #464f61;
+    --dark-color-title: #E5E7EB;
+    --dark-color-text: #9CA3AF;
+    --dark-color-scroll-track: #334155;
+    --dark-color-scroll-thumb: #475569;
+    --dark-color-scroll-active: #64748B;
+
+    --color-p-red: #FB7185;
+    --color-p-blue: #60A5FA;
+    --color-p-yellow: #FDE047;
+
+    --color-success: #16A34A;
+    --color-warning: #F59E0B;
+    --color-error: #DC2626;
+    --color-info: #0EA5E9;
+
+    --font-size: 10px;
+
+    --color-type-normal:   #A8A77A;
+    --color-type-fire:     #EE8130;
+    --color-type-water:    #6390F0;
+    --color-type-electric: #F7D02C;
+    --color-type-grass:    #7AC74C;
+    --color-type-ice:      #96D9D6;
+    --color-type-fighting: #C22E28;
+    --color-type-poison:   #A33EA1;
+    --color-type-ground:   #E2BF65;
+    --color-type-flying:   #A98FF3;
+    --color-type-psychic:  #F95587;
+    --color-type-bug:      #A6B91A;
+    --color-type-rock:     #B6A136;
+    --color-type-ghost:    #735797;
+    --color-type-dragon:   #6F35FC;
+    --color-type-dark:     #705746;
+    --color-type-steel:    #B7B7CE;
+    --color-type-fairy:    #D685AD;
+}
+
+
+
+/* LIGHT 모드 시 */
+:root {
+    --color-background: var(--light-color-background);
+    --color-surface: var(--light-color-surface);
+    --color-border: var(--light-color-border);
+    --color-title: var(--light-color-title);
+    --color-text: var(--light-color-text);
+
+    --color-scroll-track: var(--light-color-scroll-track);
+    --color-scroll-thumb: var(--light-color-scroll-thumb);
+    --color-scroll-active: var(--light-color-scroll-active);
+}
+/* DARK 모드 시 */
+.dark {
+    --color-background: var(--dark-color-background);
+    --color-surface: var(--dark-color-surface);
+    --color-border: var(--dark-color-border);
+    --color-title: var(--dark-color-title);
+    --color-text: var(--dark-color-text);
+
+    --color-scroll-track: var(--dark-color-scroll-track);
+    --color-scroll-thumb: var(--dark-color-scroll-thumb);
+    --color-scroll-active: var(--dark-color-scroll-active);
+}
+
+
+/* space media */
+@media (max-width: 1219px) {
+    :root {
+        --font-size: 9px;
+    }
+}
+@media (max-width: 1024px) {
+    :root {
+        --font-size: 8px;
+    }
+}
+@media (max-width: 640px) {
+    :root {
+        --font-size: 7px;
+    }
+}
+
+
+
+*,
+*::before,
+*::after {
+	margin: 0;
+	padding: 0;
+	border: none;
+	outline: none;
+	box-sizing: border-box !important;
+	user-select: none;
+	background-color: rgba(0, 0, 0, 0);
+	color: var(--color-text);
+	font-weight: normal;
+	text-decoration: none;
+	list-style: none;
+    /* font-family: "Jua", sans-serif; */
+	font-family: SchoolSafetyRoundedSmile, sans-serif;
+    transition: 
+        background-color 0.3s ease,
+        color 0.3s ease,
+        border-color 0.3s ease;
+}
+
+
+button,
+a {
+	cursor: pointer;
+}
+
+
+img {
+    pointer-events: none;
+}
+
+
+input::placeholder {
+    opacity: 0.7;
+}
+
+
+html,
+body {
+	width: 100%;
+	height: 100%;
+    font-size: var(--font-size);
+	color: var(--color-text);
+	text-rendering: optimizeLegibility;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+    overflow: hidden;
+}

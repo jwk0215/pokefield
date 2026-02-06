@@ -1,0 +1,81 @@
+.font-b { font-weight: bold; }
+
+
+.bg-background { background-color: var(--color-background); }
+.bg-surface { background-color: var(--color-surface); }
+.bg-border { background-color: var(--color-border); }
+.bg-p-red { background-color: var(--color-p-red); }
+.bg-p-blue { background-color: var(--color-p-blue); }
+.bg-p-yellow { background-color: var(--color-p-yellow); }
+.bg-normal { background-color: var(--color-type-normal); }
+.bg-fire { background-color: var(--color-type-fire); }
+.bg-water { background-color: var(--color-type-water); }
+.bg-electric { background-color: var(--color-type-electric); }
+.bg-grass { background-color: var(--color-type-grass); }
+.bg-ice { background-color: var(--color-type-ice); }
+.bg-fighting { background-color: var(--color-type-fighting); }
+.bg-poison { background-color: var(--color-type-poison); }
+.bg-ground { background-color: var(--color-type-ground); }
+.bg-flying { background-color: var(--color-type-flying); }
+.bg-psychic { background-color: var(--color-type-psychic); }
+.bg-bug { background-color: var(--color-type-bug); }
+.bg-rock { background-color: var(--color-type-rock); }
+.bg-ghost { background-color: var(--color-type-ghost); }
+.bg-dragon { background-color: var(--color-type-dragon); }
+.bg-dark { background-color: var(--color-type-dark); }
+.bg-steel { background-color: var(--color-type-steel); }
+.bg-fairy { background-color: var(--color-type-fairy); }
+
+
+.color-title { color: var(--color-title); }
+.color-background { color: var(--color-background); }
+.color-surface { color: var(--color-surface); }
+.color-border { color: var(--color-border); }
+.color-p-red { color: var(--color-p-red); }
+.color-p-blue { color: var(--color-p-blue); }
+.color-p-yellow { color: var(--color-p-yellow); }
+.color-normal { color: var(--color-type-normal); }
+.color-fire { color: var(--color-type-fire); }
+.color-water { color: var(--color-type-water); }
+.color-electric { color: var(--color-type-electric); }
+.color-grass { color: var(--color-type-grass); }
+.color-ice { color: var(--color-type-ice); }
+.color-fighting { color: var(--color-type-fighting); }
+.color-poison { color: var(--color-type-poison); }
+.color-ground { color: var(--color-type-ground); }
+.color-flying { color: var(--color-type-flying); }
+.color-psychic { color: var(--color-type-psychic); }
+.color-bug { color: var(--color-type-bug); }
+.color-rock { color: var(--color-type-rock); }
+.color-ghost { color: var(--color-type-ghost); }
+.color-dragon { color: var(--color-type-dragon); }
+.color-dark { color: var(--color-type-dark); }
+.color-steel { color: var(--color-type-steel); }
+.color-fairy { color: var(--color-type-fairy); }
+
+
+.w-100 { width: 100%; }
+.h-100 { height: 100%; }
+
+
+.flex { display: flex; }
+.flex.col { flex-direction: column; }
+.flex.j-center { justify-content: center; }
+.flex.a-center { align-items: center; }
+
+
+.pos-rel { position: relative; }
+.pos-abs { position: absolute; }
+.pos-sticky { position: sticky; }
+.left-0 { left: 0; }
+.left-50 { left: 50%; }
+.left-100 { left: 100%; }
+.right-0 { right: 0; }
+.right-50 { right: 50%; }
+.right-100 { right: 100%; }
+.top-0 { top: 0; }
+.top-50 { top: 50%; }
+.top-100 { top: 100%; }
+.bottom-0 { bottom: 0; }
+.bottom-50 { bottom: 50%; }
+.bottom-100 { bottom: 100%; }
