@@ -3,4 +3,13 @@ import { writable } from "svelte/store";
 
 
 
-export default writable(true);
+function createEffectStore() {
+    const { subscribe, set } = writable(false);
+
+    return {
+        subscribe,
+        startEffect: () => set(true),
+        stopEffect: () => set(false)
+    }
+}
+export default createEffectStore();

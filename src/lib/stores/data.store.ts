@@ -19,6 +19,21 @@ export type PokemonDetailDataType = {
     nameKr: string;
     image: string;
     type: string[];
+    stats: {
+        base_stat: number;
+        effort: number;
+        stat: {
+            name: string;
+            url: string;
+        }
+    }[];
+    abilities: {
+        ability: {
+            name: string;
+            url: string;
+        };
+        is_hidden: boolean;
+    }[]
 }
 
 interface DataStoreType {

@@ -10,7 +10,7 @@
 <div id="modal-background" class="pos-abs left-0 top-0 w-100 h-100 flex j-center a-center" transition:fade={{duration: 300}}>
     <div id="modal" class="bg-surface flex col"  transition:fly={{x: 0, y: 30, duration: 300}}>
         <div id="modal-bar" class="w-100 flex a-center">
-            <h2 id="modal-title" class="font-b">
+            <h2 id="modal-title">
                 {$modalStore.title}
             </h2>
 
@@ -40,7 +40,7 @@
         & #modal {
             width: 90%;
             max-width: 70rem;
-            border: 0.2rem solid var(--color-border);
+            border: 0.1rem solid var(--color-border);
             border-radius: 1rem;
             padding: 1rem;
             gap: 1rem;
@@ -54,7 +54,7 @@
 
                 & #modal-title {
                     color: var(--color-title);
-                    font-size: 1.7rem;
+                    font-size: 1.8rem;
                 }
 
 

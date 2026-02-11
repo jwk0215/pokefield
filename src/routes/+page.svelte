@@ -1,44 +1,184 @@
 <script lang="ts">
     import Alert from "$lib/components/alert.svelte";
+    import Card from "$lib/components/card.svelte";
     import Loading from "$lib/components/loading.svelte";
     import Modal from "$lib/components/modal.svelte";
     import Search from "$lib/components/modal/search.svelte";
     import ThemeController from "$lib/components/themeController.svelte";
     import alertStore from "$lib/stores/alert.store";
-    import dataStore, { type PokemonDetailDataType } from "$lib/stores/data.store";
+    import dataStore, { type PokemonDataType, type PokemonDetailDataType } from "$lib/stores/data.store";
     import effectStore from "$lib/stores/effect.store";
+    import loadingStore from "$lib/stores/loading.store";
     import modalStore from "$lib/stores/modal.store";
     import searchStore from "$lib/stores/search.store";
     import themeStore from "$lib/stores/theme.store";
     import { onMount } from "svelte";
 
 
+
+
     // LIMIT
-    const PAGE_LIMIT = 20;
+    const LIMIT = 20;
 
-
+    
     // state
     let cardListState = $state<PokemonDetailDataType[]>([]);
-    let offsetState = $state(0);
-    let searchCardListState = $state<PokemonDetailDataType[]>([]);
-    let searchOffsetState = $state(0);
+    let moreState = $state(true);
+    let containerEl = $state<HTMLElement>();
 
 
+    /**
+     * more button evt()
+     */
+    function moreEvt() {
+        loadingStore.on();
+        searchStore.updateOffset($searchStore.offset + LIMIT);
+        effectStore.startEffect();
+    }
+
+
+    /**
+     * reset
+     */
+    function reset() {
+        searchStore.search('', []);
+        effectStore.startEffect();
+    }
+
+
+    /**
+     * scroll top
+     */
+    function scrollTop() {
+        containerEl?.scrollTo({
+            top: 0,
+            behavior: "smooth"
+        });
+    }
+
+    
     /**
      * effect()
     */
     $effect(() => {
         if ($effectStore) {
-            effectStore.set(false);
+            effectStore.stopEffect();
+            loadingStore.on();
 
             (async () => {
-                // 검색
-                if ($searchStore.keyword || $searchStore.type.length > 0) {
+                try {
+                    const baseDataRecord = $dataStore.pokemonDataRecord;
+                    let searchedDataRecord = $searchStore.searchedDataRecord;
+                    let keyword = $searchStore.keyword;
+                    let typeList = $searchStore.typeList;
+                    let offset = $searchStore.offset;
 
+                    // searchStore 구독
+                    searchStore.subscribe((store) => {
+                        searchedDataRecord = store.searchedDataRecord;
+                        keyword = store.keyword;
+                        typeList = store.typeList;
+                        offset = store.offset;
+                    });
 
-                // 일반
-                } else {
+                    // 첫 검색
+                    if (Object.keys(searchedDataRecord).length === 0) {
+                        cardListState = [];
+                        
+                        let unfilteredRecord: {[id: number]: PokemonDataType} = {};
+                        let filteredRecord: {[id: number]: PokemonDataType};
+
+                        // 선택한 타입이 없거나 전부 선택한 경우
+                        if (
+                            typeList.length <= 0 ||
+                            typeList.length === $dataStore.typeDataList.length
+                        ) {
+                            unfilteredRecord = baseDataRecord;
+
+                        // 선택한 타입이 있는 경우
+                        } else {
+                            for (const type of typeList) {
+                                const res = await fetch("https://pokeapi.co/api/v2/type/" + type);
+
+                                if (!res.ok) {
+                                    throw new Error(`[${type}]에 대한 데이터 호출 실패`);
+                                }
+
+                                const typeData = await res.json();
+
+                                for (const data of typeData.pokemon ?? []) {
+                                    const id = Number(data.pokemon.url.split('/').at(-2));
+
+                                    if (!baseDataRecord[id]) {
+                                        throw new Error(`[${id}]에 대한 기본 데이터가 없습니다. 업데이트 요망`);
+                                    }
+
+                                    if (!unfilteredRecord[id]) {
+                                        unfilteredRecord[id] = baseDataRecord[id];
+                                    }
+                                }
+                            }
+                        }
+
+                        // 키워드
+                        if (keyword.length > 0) {
+                            filteredRecord = {};
+                            
+                            for (const [id, data] of Object.entries(unfilteredRecord)) {
+                                if (data.nameKr.includes(keyword)) {
+                                    console.log(data.nameKr);
+                                    filteredRecord[Number(id)] = data;
+                                }
+                            }
+
+                        // 키워드 없는 경우
+                        } else {
+                            filteredRecord = unfilteredRecord;
+                        }
+
+                        searchStore.updateSearchedDataRecord(filteredRecord);
+                    }
                     
+                    // 디테일 데이터 가져오기
+                    const list: PokemonDetailDataType[] = [];
+
+                    for (const [idx, [id, data]] of Object.entries(searchedDataRecord).entries()) {
+                        if (idx < offset) continue;
+
+                        if (idx >= (offset + LIMIT)) break;
+                        
+                        if ($dataStore.pokemonDetailDataRecord[Number(id)]) {
+                            list.push($dataStore.pokemonDetailDataRecord[Number(id)]);
+                            continue;
+                        }
+
+                        const res = await fetch(data.url);
+                        if (!res.ok) throw new Error(`[${id}] 디테일 데이트 호출 실패`);
+
+                        const detail = await res.json();
+                        const result: PokemonDetailDataType = {
+                            nameKr: data.nameKr,
+                            image: detail.sprites.other["official-artwork"].front_default,
+                            type: detail.types.map((t: any) => t.type.name),
+                            stats: detail.stats,
+                            abilities: detail.abilities
+                        };
+
+                        dataStore.updatePokemonDetailDataRecord(Number(id), result);
+                        list.push(result);
+                    }
+
+                    moreState = !(Object.keys(searchedDataRecord).length <= (offset + LIMIT));
+                    cardListState = [...cardListState, ...list];
+                    loadingStore.off();
+                    
+                } catch (error: any) {
+                    console.log(error);
+                    
+                    alertStore.on({
+                        error: error.message,
+                        message: "확인 후 다시 시도해주세요."
+                    });
                 }
             })();
         }
@@ -59,7 +199,11 @@
             dataStore.setTypeDataList((await typeRes.json()).results);
             dataStore.setPokemonDataRecord(await pokemonDataListRes.json());
 
+            effectStore.startEffect();
+
         } catch (error: any) {
+            console.log(error);
+            
             alertStore.on({
                 error: error.message,
                 message: "확인 후 다시 시도해주세요."
@@ -82,7 +226,7 @@
                 onclick={() => {
                     modalStore.setStore({
                         component: Search,
-                        title: "포켓몬 검색"
+                        title: "검색"
                     });
                 }}>
                     <svg viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg" fill="none">
@@ -97,23 +241,26 @@
         </div>
     </header>
 
-    <div id="container" class="w-100">
+    <div id="container" class="w-100" bind:this={containerEl}>
         <div id="limit" class="w-100 h-100 flex col">
-            <main id="main" class="w-100 pos-rel">
-                <ul id="card-list" class="w-100 flex">
-                    
+            <main id="main" class="w-100 pos-rel flex col">
+                <ul id="card-list" class="w-100">
+                    {#each cardListState as data}
+                    <Card data={data} />
+                    {/each}
                 </ul>
 
-                {#if cardListState.length <= 0 || 
-                ($searchStore.keyword.length > 0 && searchCardListState.length <= 0)}
+                {#if cardListState.length <= 0}
                 <Loading />
                 {:else}
                 <div id="more-btn-wrapper" class="pos-rel w-100 flex j-center a-center">
-                    <button id="more-btn">
-                        더 보기
-                    </button>
-                    
                     <Loading />
+
+                    {#if moreState}
+                    <button id="more-btn" class="w-100 bg-p-blue" onclick={moreEvt}>
+                        + 더 보기
+                    </button>
+                    {/if}
                 </div>
                 {/if}
             </main>
@@ -126,6 +273,30 @@
         </div>
     </div>
 
+    <div id="convenience-wrapper" class="pos-abs right-0 bottom-0 flex col">
+        {#if $searchStore.keyword.length > 0 || $searchStore.typeList.length > 0}
+        <button class="convenience-btn" aria-label="page reset button" onclick={reset}>
+            <svg style="width: 50%; margin-top: 0.5rem;" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" fill="currentColor">
+                <g stroke-width="0"></g>
+                <g stroke-linecap="round" stroke-linejoin="round"></g>
+                <g>
+                    <path fill="currentColor" d="M13.9907,1.31133017e-07 C14.8816,1.31133017e-07 15.3277,1.07714 14.6978,1.70711 L13.8556,2.54922 C14.421,3.15654 14.8904,3.85028 15.2448,4.60695 C15.8028,5.79836 16.0583,7.109 15.9888,8.42277 C15.9193,9.73654 15.5268,11.0129 14.8462,12.1388 C14.1656,13.2646 13.2178,14.2053 12.0868,14.8773 C10.9558,15.5494 9.67655,15.9322 8.3623,15.9918 C7.04804,16.0514 5.73937,15.7859 4.55221,15.2189 C3.36505,14.652 2.33604,13.8009 1.55634,12.7413 C0.776635,11.6816 0.270299,10.446 0.0821822,9.14392 C0.00321229,8.59731 0.382309,8.09018 0.928918,8.01121 C1.47553,7.93224 1.98266,8.31133 2.06163,8.85794 C2.20272,9.83451 2.58247,10.7612 3.16725,11.556 C3.75203,12.3507 4.52378,12.989 5.41415,13.4142 C6.30452,13.8394 7.28602,14.0385 8.27172,13.9939 C9.25741,13.9492 10.2169,13.6621 11.0651,13.158 C11.9133,12.6539 12.6242,11.9485 13.1346,11.1041 C13.6451,10.2597 13.9395,9.30241 13.9916,8.31708 C14.0437,7.33175 13.8521,6.34877 13.4336,5.45521 C13.178,4.90949 12.8426,4.40741 12.4402,3.96464 L11.7071,4.69779 C11.0771,5.32776 9.99996,4.88159 9.99996,3.99069 L9.99996,1.31133017e-07 L13.9907,1.31133017e-07 Z M1.499979,4 C2.05226,4 2.499979,4.44772 2.499979,5 C2.499979,5.55229 2.05226,6 1.499979,6 C0.947694,6 0.499979,5.55228 0.499979,5 C0.499979,4.44772 0.947694,4 1.499979,4 Z M3.74998,1.25 C4.30226,1.25 4.74998,1.69772 4.74998,2.25 C4.74998,2.80229 4.30226,3.25 3.74998,3.25 C3.19769,3.25 2.74998,2.80228 2.74998,2.25 C2.74998,1.69772 3.19769,1.25 3.74998,1.25 Z M6.99998,0 C7.55226,0 7.99998,0.447716 7.99998,1 C7.99998,1.55229 7.55226,2 6.99998,2 C6.44769,2 5.99998,1.55229 5.99998,1 C5.99998,0.447716 6.44769,0 6.99998,0 Z"></path>
+                </g>
+            </svg>
+        </button>
+        {/if}
+
+        <button class="convenience-btn" aria-label="scroll top button" onclick={scrollTop}>
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <g stroke-width="0"></g>
+                <g stroke-linecap="round" stroke-linejoin="round"></g>
+                <g>
+                    <path d="M18.2929 15.2893C18.6834 14.8988 18.6834 14.2656 18.2929 13.8751L13.4007 8.98766C12.6195 8.20726 11.3537 8.20757 10.5729 8.98835L5.68257 13.8787C5.29205 14.2692 5.29205 14.9024 5.68257 15.2929C6.0731 15.6835 6.70626 15.6835 7.09679 15.2929L11.2824 11.1073C11.673 10.7168 12.3061 10.7168 12.6966 11.1073L16.8787 15.2893C17.2692 15.6798 17.9024 15.6798 18.2929 15.2893Z" fill="currentColor"></path>
+                </g>
+            </svg>
+        </button>
+    </div>
+    
     <Modal />
     <Alert />
 </div>
@@ -187,16 +358,51 @@
                 & #main {
                     flex: 1;
                     padding: 5rem 0;
+                    gap: 5rem;
 
 
                     & #card-list {
-                        flex-wrap: wrap;
-                        gap: 2rem;
+                        display: grid;
+                        grid-template-columns: repeat(4, 1fr);
+                        gap: 5rem;
+                    }
+                    @media (max-width: 1219px) {
+                        & #card-list {
+                            grid-template-columns: repeat(3, 1fr);
+                            gap: 4rem;
+                        }
+                    }
+                    @media (max-width: 1024px) {
+                        & #card-list {
+                            grid-template-columns: repeat(2, 1fr);
+                            gap: 3rem;
+                        }
                     }
 
 
+
                     & #more-btn-wrapper {
-                        padding: 2rem 0;
+                        
+                        
+                        & #more-btn {
+                            padding: 1.3rem 0;
+                            font-size: 1.8rem;
+                            border-radius: 1rem;
+                            border: 0.1rem solid var(--color-border);
+                            color: #ffffff;
+                        }
+                    }
+                }
+                @media (max-width: 1219px) {
+                    & #main {
+                        padding: 4rem 0;
+                        gap: 4rem;
+                    }
+                }
+                @media (max-width: 1024px) {
+                    & #main {
+                        padding: 3rem 0;
+                        gap: 3rem;
                     }
                 }
     
@@ -215,20 +421,42 @@
                 }
             }
         }
+
+
+        & #convenience-wrapper {
+            width: 5.5rem;
+            gap: 2rem;
+            transform: translate(-5rem, -10rem);
+            z-index: 500;
+
+
+            & .convenience-btn {
+                width: 100%;
+                aspect-ratio: 1;
+                border-radius: 50%;
+                background-color: var(--color-surface);
+                border: 0.1rem solid var(--color-border);
+
+
+                & * {
+                    color: var(--color-title);
+                }
+            }
+        }
     }
 
 
     :global(*::-webkit-scrollbar) {
-		width: 1rem;
-		height: 1rem;
+		width: 1.2rem;
+		height: 1.2rem;
 		background-color: var(--color-background);
 	}
     :global(*::-webkit-scrollbar-corner) {
         background-color: var(--color-background);
     }
-	/* :global(*::-webkit-scrollbar-thumb) {
+	:global(*::-webkit-scrollbar-thumb) {
         border-radius: 9999px;
-        border: 0.3rem solid var(--color-background);
+        border: 0.2rem solid var(--color-background);
 		background-color: var(--color-scroll-thumb);
-	} */
+	}
 </style>

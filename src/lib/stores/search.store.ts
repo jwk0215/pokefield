@@ -1,18 +1,21 @@
 import { writable } from "svelte/store";
+import type { PokemonDataType } from "./data.store";
 
 
 
 
 interface SearchStoreType {
-    searchedKeyword: string;
     keyword: string;
-    type: string[];
+    typeList: string[];
+    offset: number;
+    searchedDataRecord: {[id: number]: PokemonDataType};
 }
 
 const initialStore: SearchStoreType = {
-    searchedKeyword: '',
     keyword: '',
-    type: []
+    typeList: [],
+    offset: 0,
+    searchedDataRecord: {}
 };
 
 
@@ -21,20 +24,39 @@ function createSearchStore() {
 
     return {
         subscribe,
+        search: (keyword: string, typeList: string[]) => {
+            update((store: SearchStoreType) => {
+                store.keyword = keyword;
+                store.typeList = typeList;
+                store.offset = 0;
+                store.searchedDataRecord = {};
+                return store;
+            });
+        },
         updateKeyword: (keyword: string) => {
-            update(store => {
+            update((store: SearchStoreType) => {
                 store.keyword = keyword;
                 return store;
             });
         },
-        updateType: (type: string) => {
-            update(store => {
-                if (store.type.includes(type)) store.type.filter(t => t !== type);
-                else store.type.push(type);
-
+        updateType: (typeList: string[]) => {
+            update((store: SearchStoreType) => {
+                store.typeList = typeList;
                 return store;
             });
-        }
+        },
+        updateOffset: (offset: number) => {
+            update((store: SearchStoreType) => {
+                store.offset = offset;
+                return store;
+            });
+        },
+        updateSearchedDataRecord: (record: {[id: number]: PokemonDataType}) => {
+            update((store: SearchStoreType) => {
+                store.searchedDataRecord = record;
+                return store;
+            });
+        },
     }
 }
 export default createSearchStore();
