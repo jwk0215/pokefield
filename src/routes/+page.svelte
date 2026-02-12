@@ -5,6 +5,7 @@
     import Modal from "$lib/components/modal.svelte";
     import Search from "$lib/components/modal/search.svelte";
     import ThemeController from "$lib/components/themeController.svelte";
+    import actionStore from "$lib/stores/action.store";
     import alertStore from "$lib/stores/alert.store";
     import dataStore, { type PokemonDataType, type PokemonDetailDataType } from "$lib/stores/data.store";
     import effectStore from "$lib/stores/effect.store";
@@ -22,7 +23,7 @@
 
     
     // state
-    let cardListState = $state<PokemonDetailDataType[]>([]);
+    let viewRecordState = $state<{[id: number]: PokemonDetailDataType}>({});
     let moreState = $state(true);
     let containerEl = $state<HTMLElement>();
 
@@ -31,6 +32,8 @@
      * more button evt()
      */
     function moreEvt() {
+        if (!$actionStore) return;
+        
         loadingStore.on();
         searchStore.updateOffset($searchStore.offset + LIMIT);
         effectStore.startEffect();
@@ -41,6 +44,9 @@
      * reset
      */
     function reset() {
+        if (!$actionStore) return;
+        
+        scrollTop();
         searchStore.search('', []);
         effectStore.startEffect();
     }
@@ -50,9 +56,24 @@
      * scroll top
      */
     function scrollTop() {
+        if (!$actionStore) return;
+        
         containerEl?.scrollTo({
             top: 0,
             behavior: "smooth"
+        });
+    }
+
+
+    /**
+     * open search modal()
+     */
+    function openSearchModal() {
+        if (!$actionStore) return;
+                    
+        modalStore.setStore({
+            component: Search,
+            title: "검색"
         });
     }
 
@@ -63,6 +84,7 @@
     $effect(() => {
         if ($effectStore) {
             effectStore.stopEffect();
+            actionStore.setStore(false);
             loadingStore.on();
 
             (async () => {
@@ -83,7 +105,7 @@
 
                     // 첫 검색
                     if (Object.keys(searchedDataRecord).length === 0) {
-                        cardListState = [];
+                        viewRecordState = [];
                         
                         let unfilteredRecord: {[id: number]: PokemonDataType} = {};
                         let filteredRecord: {[id: number]: PokemonDataType};
@@ -108,6 +130,9 @@
 
                                 for (const data of typeData.pokemon ?? []) {
                                     const id = Number(data.pokemon.url.split('/').at(-2));
+
+                                    // 현재 포켓몬 공식 페이지에 1025까지만 나와있음
+                                    if (id > 1025) continue;
 
                                     if (!baseDataRecord[id]) {
                                         throw new Error(`[${id}]에 대한 기본 데이터가 없습니다. 업데이트 요망`);
@@ -140,7 +165,7 @@
                     }
                     
                     // 디테일 데이터 가져오기
-                    const list: PokemonDetailDataType[] = [];
+                    const record: {[id: number]: PokemonDetailDataType} = {};
 
                     for (const [idx, [id, data]] of Object.entries(searchedDataRecord).entries()) {
                         if (idx < offset) continue;
@@ -148,7 +173,7 @@
                         if (idx >= (offset + LIMIT)) break;
                         
                         if ($dataStore.pokemonDetailDataRecord[Number(id)]) {
-                            list.push($dataStore.pokemonDetailDataRecord[Number(id)]);
+                            record[Number(id)] = $dataStore.pokemonDetailDataRecord[Number(id)];
                             continue;
                         }
 
@@ -165,12 +190,13 @@
                         };
 
                         dataStore.updatePokemonDetailDataRecord(Number(id), result);
-                        list.push(result);
+                        record[Number(id)] = result;
                     }
 
                     moreState = !(Object.keys(searchedDataRecord).length <= (offset + LIMIT));
-                    cardListState = [...cardListState, ...list];
+                    viewRecordState = {...viewRecordState, ...record};
                     loadingStore.off();
+                    actionStore.setStore(true);
                     
                 } catch (error: any) {
                     console.log(error);
@@ -223,12 +249,7 @@
 
             <div id="btn-wrapper" class="flex a-center">
                 <button id="search-on-btn" class="bg-background" aria-label="search button"
-                onclick={() => {
-                    modalStore.setStore({
-                        component: Search,
-                        title: "검색"
-                    });
-                }}>
+                onclick={openSearchModal}>
                     <svg viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg" fill="none">
                         <g stroke-width="0"></g>
                         <g stroke-linecap="round" stroke-linejoin="round"></g>
@@ -245,16 +266,20 @@
         <div id="limit" class="w-100 h-100 flex col">
             <main id="main" class="w-100 pos-rel flex col">
                 <ul id="card-list" class="w-100">
-                    {#each cardListState as data}
-                    <Card data={data} />
+                    {#each Object.entries(viewRecordState) as [id, data]}
+                    <Card id={Number(id)} data={data} />
                     {/each}
                 </ul>
 
-                {#if cardListState.length <= 0}
-                <Loading />
+                {#if Object.keys(viewRecordState).length <= 0}
+                    {#if $loadingStore}
+                    <Loading />
+                    {/if}
                 {:else}
                 <div id="more-btn-wrapper" class="pos-rel w-100 flex j-center a-center">
+                    {#if $loadingStore}
                     <Loading />
+                    {/if}
 
                     {#if moreState}
                     <button id="more-btn" class="w-100 bg-p-blue" onclick={moreEvt}>

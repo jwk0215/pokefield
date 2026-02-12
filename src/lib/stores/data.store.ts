@@ -33,7 +33,7 @@ export type PokemonDetailDataType = {
             url: string;
         };
         is_hidden: boolean;
-    }[]
+    }[];
 }
 
 interface DataStoreType {

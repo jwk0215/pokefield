@@ -1,15 +1,8 @@
-<script lang="ts">
-    import loadingStore from "$lib/stores/loading.store";
-</script>
-
-
-{#if $loadingStore}
 <div id="loading-wrapper" class="flex j-center a-center pos-abs left-0 top-0 w-100 h-100 bg-background">
     <div class="loading bg-p-red"></div>
     <div class="loading bg-p-blue"></div>
     <div class="loading bg-p-yellow"></div>
 </div>
-{/if}
 
 
 <style>

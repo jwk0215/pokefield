@@ -31,3 +31,20 @@ export function getKrTypeName(type: string) {
 
     return krTypeName[type] || null;
 }
+
+
+/**
+ * 포켓몬 스탯 한글이름 가져오기
+ * @param type 스탯 이름 (string)
+ * @returns 스탯 한글이름
+ */
+export function getKrStatName(name: string) {
+    const krStatName: Record<string, string> = {
+        hp: "체력",
+        attack: "공격",
+        defense: "방어",
+        speed: "속도",
+    };
+
+    return krStatName[name];
+}

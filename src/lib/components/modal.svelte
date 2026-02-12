@@ -1,6 +1,24 @@
 <script lang="ts">
+    import actionStore from "$lib/stores/action.store";
     import modalStore from "$lib/stores/modal.store";
     import { fade, fly } from "svelte/transition";
+
+
+
+
+    /**
+     * close modal()
+     */
+    function closeModal() {
+        if (!$actionStore) return;
+        
+        actionStore.setStore(false);
+        modalStore.clearStore();
+
+        setTimeout(() => {
+            actionStore.setStore(true);
+        }, 300);
+    }
 </script>
 
 
@@ -15,15 +33,15 @@
             </h2>
 
             <button id="close-btn" class="bg-p-red flex j-center a-center"
-            onclick={() => {
-                modalStore.clearStore();
-            }}>
+            onclick={closeModal}>
                 닫기
             </button>
         </div>
 
         <div id="modal-content" class="bg-background">
-            <MODAL_COMPONENT />
+            <!-- popup의 자식 컴포넌트는 props를 data로 정의해서 사용할 것 -->
+            <!-- let { data } = props() 이 형식으로 선언해서 사용 -->
+            <MODAL_COMPONENT {...$modalStore.props} />
         </div>
     </div>
 </div>

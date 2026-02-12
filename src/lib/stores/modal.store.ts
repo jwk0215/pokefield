@@ -4,17 +4,18 @@ import { writable } from "svelte/store";
 
 
 
-interface ModalStoreType {
-    component: Component;
+interface ModalStoreType<C extends Component<any> = Component<any>> {
     title: string;
+    component: C;
+    props?: C extends Component<infer P> ? P : never;
 }
 
 function createModalStore() {
-    const { subscribe, set, update } = writable<ModalStoreType | null>(null);
+    const { subscribe, set, update } = writable<ModalStoreType<any> | null>(null);
 
     return {
         subscribe,
-        setStore(data: ModalStoreType) {
+        setStore<C extends Component<any>>(data: ModalStoreType<C>) {
             set(data);
         },
         clearStore() {

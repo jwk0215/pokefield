@@ -1,18 +1,40 @@
 <script lang="ts">
+    import actionStore from "$lib/stores/action.store";
     import type { PokemonDetailDataType } from "$lib/stores/data.store";
+    import modalStore from "$lib/stores/modal.store";
     import { getKrTypeName } from "$lib/utils/pokemon";
+    import Detail from "./modal/detail.svelte";
 
 
 
     
+    // props type
+    type PropsType = {
+        id: number;
+        data: PokemonDetailDataType;
+    }
+    
+    
     // props
-    let { data } = $props<{
-        data: PokemonDetailDataType
-    }>();
+    let { id, data }: PropsType = $props();
+
+
+    /**
+     * detail modal open evt()
+     */
+    function openDetail() {
+        if (!$actionStore) return;
+        
+        modalStore.setStore({
+            component: Detail,
+            title: "자세히 보기",
+            props: { id }
+        });
+    }
 </script>
 
 
-<article id="card" class="flex col bg-surface">
+<article id="card" class="flex col bg-surface pos-rel">
     <img id="card-img" class="bg-background w-100" src="{data.image}" alt="img">
 
     <h3 id="card-title" class="w-100 flex a-center">
@@ -26,6 +48,9 @@
         </li>
         {/each}
     </ul>
+
+    <button id="open-btn" class="pos-abs left-0 top-0 w-100 h-100" onclick={openDetail}
+    aria-label="open button"></button>
 </article>
 
 

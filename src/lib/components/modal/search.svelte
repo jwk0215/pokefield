@@ -1,7 +1,6 @@
 <script lang="ts">
     import dataStore from "$lib/stores/data.store";
     import effectStore from "$lib/stores/effect.store";
-    import loadingStore from "$lib/stores/loading.store";
     import modalStore from "$lib/stores/modal.store";
     import searchStore from "$lib/stores/search.store";
     import { getKrTypeName } from "$lib/utils/pokemon";
